@@ -34,7 +34,7 @@ foreach($email as $datum){
 	$body .= $datum . "\n";
 }
 
-$to = "badamgries@gmail.com";
+$to = "adamgries@gmail.com";
 $subject = "Delivery Order for 1813 Greenwich";
 $headers = 'From: Whole Foods Delivery SF <orders@wholefoodsdeliverysf.com>';
 //if(mail($to, $subject, $body, $headers)) {

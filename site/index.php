@@ -1,14 +1,14 @@
 <?php
 require_once("inc/master_inc.php");
+require_once("../../common/include/functions.php");
 
 //render_header();
 $conn = get_db_conn();
 $sql = "SELECT * FROM items ORDER BY item_type DESC";
 $result = mysql_query($sql);
-$i = 1;
 ?>
-<style>
 
+<style>
 .title {
 	font-size:32px;
 	font-weight:bold;
@@ -53,8 +53,6 @@ $i = 1;
 	border: 3px solid #666;
 	padding: 5px;
 }
-
-
 </style>
 
 <head>
@@ -70,42 +68,87 @@ $i = 1;
 
 			<center>
 				<div style="margin-bottom:20px;">
-					<div class="container"> Container Size </div>
-						<input type="radio" name="size" value="Large" checked="true" /> Large<br/>
-						<input type="radio" name="size" value="Small" /> Small </>
+					<table><tr>
+						<td>
+							<div class="container">Container Size</div>
+							<input type="radio" name="size" value="Large" checked="true">Large</input><br/>
+							<input type="radio" name="size" value="Small">Small</input>
+						</td>
+						<td width="40" />
+						<td>
+							<div class="container">Use Template</div>
+							<select id="templateSelect" onchange="set_item_set();">
+								<?php
+								$rs = mysql_query("SELECT * FROM item_sets");
+								$obj = null;
+								$jsItemSetStr = "";
+								while($obj = mysql_fetch_object($rs)) {
+									$label = $obj->label;
+									$id = $obj->id;
+									
+									$jsItemSetStr .= "if(item_set_id=='$id') {";
+									$rs2 = mysql_query("SELECT item_id, quantity FROM item_set_items WHERE item_set_id=$id");
+									$obj2 = null;
+									while($obj2 = mysql_fetch_object($rs2)) {
+										$jsItemSetStr .= "set_select_by_id('$obj2->item_id', '$obj2->quantity');";
+									}
+									$jsItemSetStr .= "}";
+								?>
+								<option value="<?php echo $id; ?>"><?php echo $label; ?></option>
+								<?php
+								}
+								?>
+							</select>
+						</td>
+					</tr></table>
 				</div>
 			</center>
 
 			<script>
-				//This function selects and deselects items on the menu
-				function set_select(select_id){
-					var food_id = 'food' + select_id;
+				function set_item_set() {
+					var item_set_id = document.getElementById("templateSelect").value;
+					clear_all();
+					<?php echo $jsItemSetStr; ?>
+				}
+				function toggle_select(select_id) {
 					if(document.getElementById(select_id).value == 'none'){
-						document.getElementById(select_id).value = 'some';
-						document.getElementById(food_id).className = "selected";
-					}else{
-						document.getElementById(food_id).className = "food";
-						document.getElementById(select_id).value = 'none';
-
+						set_select(select_id, "some");
+					}
+					else {
+						set_select(select_id, "none");
 					}
 				}
-				function remove_select(select_id,quantity){
+				function set_select_by_id(id, quantity) {
+					var select_id = 'item'+id+'_quantity';
+					set_select(select_id, quantity);
+				}
+				function set_select(select_id, quantity) {
+					document.getElementById(select_id).value = quantity;
+					set_highlight(select_id, quantity);
+				}
+				function select_change(select_id) {
+					quantity = document.getElementById(select_id).value;
+					set_highlight(select_id, quantity);
+				}
+				function set_highlight(select_id, quantity) {
 					var food_id = 'food' + select_id;
 					if(quantity =='none'){
 						document.getElementById(food_id).className = "food";
-					}else{
+					}
+					else {
 						document.getElementById(food_id).className = "selected";
 					}
 				}
 			</script>
 
-
 			<center>
 				<div style="margin-bottom:20px;">
 					<div class="food_select"> Select Your Food </div>
-
 						<?php //for all items in the food array grab the name and the url and present:
+						$jsClearAllStr = "";
 						while ($row = mysql_fetch_array($result)) {
+							$i = $row['id'];
+							$jsClearAllStr .= "set_select_by_id($i, 'none');";
 							$item_number_name = "item" . $i . "_name";
 							$item_number_quantity = "item" . $i . "_quantity";
 							$image_url = "images/" . $row['item_url'];
@@ -113,43 +156,61 @@ $i = 1;
 ?>
 						<div class="item_container">
 							<div id="<?php echo $food_id;?>" class="food"> <?php echo $row['item_name']; ?> <br/>
-								<img src='<?php echo $image_url;?>' onclick="set_select('<?php echo $item_number_quantity;?>');" /><br/>
+								<img src='<?php echo $image_url;?>' onclick="toggle_select('<?php echo $item_number_quantity;?>');" /><br/>
 								<input name="<?php echo $item_number_name; ?>" type="hidden" value="<?php echo $row['item_name'];?>"/>
-								<select id="<?php echo $item_number_quantity; ?>" name="<?php echo $item_number_quantity; ?>">
-								<?php if($row['item_type'] == 'soup'){?>
-									<option value="none" onclick="remove_select('<?php echo $item_number_quantity;?>', 'none');"> None </option>
-									<option value="some" onclick="remove_select('<?php echo $item_number_quantity;?>', 'some');"> Small </option>
-									<option value="large" onclick="remove_select('<?php echo $item_number_quantity;?>', 'large');"> Large </option>
+								<select id="<?php echo $item_number_quantity; ?>" name="<?php echo $item_number_quantity; ?>" onchange="select_change('<?php echo $item_number_quantity;?>');">
 								<?php
-								}elseif($row['item_type'] == 'dressings and condiments'){?>
-									<option value="none" onclick="remove_select('<?php echo $item_number_quantity;?>', 'none');"> None </option>
-									<option value="some" onclick="remove_select('<?php echo $item_number_quantity;?>', 'some');"> Light </option>
-									<option value="medium" onclick="remove_select('<?php echo $item_number_quantity;?>', 'medium');"> Medium </option>
-									<option value="heavy" onclick="remove_select('<?php echo $item_number_quantity;?>', 'heavy');"> Heavy </option>
-								<?php	
-								}else{
+								if($row['item_type'] == 'soup'){
 								?>
-									<option value="none" onclick="remove_select('<?php echo $item_number_quantity;?>', 'none');"> None </option>
-									<option value="some" onclick="remove_select('<?php echo $item_number_quantity;?>', 'some');"> Some </option>
-									<option value="ten grams" onclick="remove_select('<?php echo $item_number_quantity;?>', 'ten');">10 Gram </option>
-									<option value="fifty grams" onclick="remove_select('<?php echo $item_number_quantity;?>', 'fifty');">50 Gram </option>
-									<option value="one hundred grams" onclick="remove_select('<?php echo $item_number_quantity;?>', 'hundred');">100 Gram </option>
-									<option value="two hundred grams" onclick="remove_select('<?php echo $item_number_quantity;?>', 'two_hundred');">200 Gram </option>
-									<option value="three hundred grams" onclick="remove_select('<?php echo $item_number_quantity;?>', 'three_hundred');">300 Gram </option>
+									<option value="none"> None </option>
+									<option value="some"> Small </option>
+									<option value="large"> Large </option>
+								<?php
+								}
+								elseif($row['item_type'] == 'dressings and condiments'){
+								?>
+									<option value="none"> None </option>
+									<option value="some"> Light </option>
+									<option value="medium"> Medium </option>
+									<option value="heavy"> Heavy </option>
+								<?php	
+								}
+								else{
+								?>
+									<option value="none"> None </option>
+									<option value="some"> Some </option>
+									<option value="ten grams">10 Gram </option>
+									<option value="fifty grams">50 Gram </option>
+									<option value="one hundred grams">100 Gram </option>
+									<option value="two hundred grams">200 Gram </option>
+									<option value="three hundred grams">300 Gram </option>
 								<?php 
-								}?>
+								}
+								?>
 								</select> 
-
-
-
 							</div>
 						</div>
-						<?php $i++;
+						<?php
 						} ?>
 				</div>
 			</center>
-		</div><div style="clear:both;"/>
-			<center><input class="submit" type="submit" value="Get Yummy Food Now" /></center>
+			<script>
+				function clear_all() {
+					<?php echo $jsClearAllStr; ?>
+				}			
+			</script>
+		</div>
+		<div style="clear:both;"/>
+		<center><table width="700px"><tr>
+			<td>
+				Save as new template (optional)<br/>
+				<input type="text" name="newTemplate" />
+			</td>
+			<td width="40" />
+			<td>
+				<center><input class="submit" type="submit" value="Get Yummy Food Now" /></center>
+			</td>
+		</tr></table></center>
 		</form>
 	</div>
 </div>

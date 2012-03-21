@@ -29,7 +29,7 @@ while($obj=mysql_fetch_object($rs)) {
 	}
 }
 
-$body = "Size \n";
+$body = "Name\n'$_POST[userName]'\nSize\n";
 foreach($email as $datum){
 	$body .= $datum . "\n";
 }
@@ -37,9 +37,9 @@ foreach($email as $datum){
 $to = "adamgries@gmail.com";
 $subject = "Delivery Order for 1813 Greenwich";
 $headers = 'From: Whole Foods Delivery SF <orders@wholefoodsdeliverysf.com>';
-//if(mail($to, $subject, $body, $headers)) {
-echo $body."<br/>";
-if(true) {
+if(mail($to, $subject, $body, $headers)) {
+//echo $body."<br/>";
+//if(true) {
 	echo("<p>Order successfully sent!</p> <p>You will be eating yumminess soon!</p>");
 } 
 else {

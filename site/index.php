@@ -78,6 +78,7 @@ $result = mysql_query($sql);
 						<td>
 							<div class="container">Use Template</div>
 							<select id="templateSelect" onchange="set_item_set();">
+								<option value="none" selected> </option>
 								<?php
 								$rs = mysql_query("SELECT * FROM item_sets");
 								$obj = null;
@@ -203,8 +204,10 @@ $result = mysql_query($sql);
 		<div style="clear:both;"/>
 		<center><table width="700px"><tr>
 			<td>
-				Save as new template (optional)<br/>
+				Save as new template (optional):<br/>
 				<input type="text" name="newTemplate" />
+				Name:<br/>
+				<input type="text" name="userName" />
 			</td>
 			<td width="40" />
 			<td>

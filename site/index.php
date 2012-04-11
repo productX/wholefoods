@@ -204,10 +204,10 @@ $result = mysql_query($sql);
 		<div style="clear:both;"/>
 		<center><table width="700px"><tr>
 			<td>
+				Your name:<br/>
+				<input type="text" name="userName" />
 				Save as new template (optional):<br/>
 				<input type="text" name="newTemplate" />
-				Name:<br/>
-				<input type="text" name="userName" />
 			</td>
 			<td width="40" />
 			<td>
